@@ -63,6 +63,17 @@
         <!-- FORMULÁRIO -->
         <div class="contact-form-wrapper">
           <form class="contact-form" @submit.prevent="sendToWhatsApp">
+            <div class="honeypot">
+              <label for="website"> Website </label>
+
+              <input
+                id="website"
+                v-model="form.honeypot"
+                type="text"
+                tabindex="-1"
+                autocomplete="off"
+              />
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="name"> Nome * </label>
@@ -132,13 +143,20 @@
               />
             </div>
 
-            <button type="submit" class="submit-button">
-              <span>Enviar pelo WhatsApp</span>
-              <span>→</span>
+            <button type="submit" class="submit-button" :disabled="loading">
+              <span>
+                {{ loading ? 'Validando...' : 'Enviar mensagem' }}
+              </span>
+
+              <span v-if="!loading"> → </span>
             </button>
 
-            <p class="form-notice">
-              Ao clicar em enviar, o WhatsApp será aberto com sua mensagem preenchida.
+            <p v-if="success" class="form-success">
+              Sua mensagem foi validada com sucesso. Em breve entraremos em contato.
+            </p>
+
+            <p v-if="error" class="form-error">
+              {{ error }}
             </p>
           </form>
         </div>
@@ -149,6 +167,9 @@
 
 <script setup>
 import { reactive, computed } from 'vue'
+import { useRecaptcha } from '../composables/useRecaptcha'
+
+const { execute } = useRecaptcha()
 
 const whatsappNumber = '555196699337'
 
@@ -165,28 +186,57 @@ const whatsappLink = computed(() => {
   return `https://wa.me/${whatsappNumber}`
 })
 
-function sendToWhatsApp() {
-  const message = `
-Olá, Code Experts!
+async function sendToWhatsApp() {
+  loading.value = true
+  success.value = false
+  error.value = ''
 
-Gostaria de entrar em contato.
+  try {
+    const recaptchaToken = await execute('contact')
 
-*Nome:* ${form.name}
-*Empresa:* ${form.company || 'Não informado'}
-*E-mail:* ${form.email || 'Não informado'}
-*WhatsApp:* ${form.phone || 'Não informado'}
+    const response = await fetch('/.netlify/functions/contact', {
+      method: 'POST',
 
-*Assunto:* ${form.subject}
+      headers: {
+        'Content-Type': 'application/json',
+      },
 
-*Mensagem:*
-${form.message}
-  `.trim()
+      body: JSON.stringify({
+        ...form,
+        recaptchaToken,
+      }),
+    })
 
-  const encodedMessage = encodeURIComponent(message)
+    const result = await response.json()
 
-  const url = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Não foi possível enviar sua mensagem.')
+    }
 
-  window.open(url, '_blank')
+    success.value = true
+
+    /*
+     * Aqui ainda não abrimos o WhatsApp.
+     *
+     * Primeiro estamos validando a infraestrutura.
+     */
+
+    Object.assign(form, {
+      name: '',
+      company: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+      honeypot: '',
+    })
+  } catch (err) {
+    console.error(err)
+
+    error.value = err.message || 'Não foi possível enviar sua mensagem.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -429,6 +479,44 @@ ${form.message}
 
   font-size: 12px;
   text-align: center;
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+
+  width: 1px;
+  height: 1px;
+
+  overflow: hidden;
+}
+
+.form-success {
+  padding: 14px;
+
+  border-radius: var(--radius-md);
+
+  background: #ecfdf5;
+  color: #047857;
+
+  font-size: 14px;
+}
+
+.form-error {
+  padding: 14px;
+
+  border-radius: var(--radius-md);
+
+  background: #fef2f2;
+  color: #b91c1c;
+
+  font-size: 14px;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 900px) {
