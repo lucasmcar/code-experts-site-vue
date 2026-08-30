@@ -1,0 +1,30 @@
+body {
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: var(--color-background);
+  line-height: 1.6;
+}
+
+.container {
+  width: min(calc(100% - 40px), var(--container-width));
+
+  margin-inline: auto;
+}
+
+.section {
+  padding: var(--spacing-section) 0;
+}
+
+.section--gray {
+  background: var(--color-background-secondary);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --spacing-section: 70px;
+  }
+
+  .container {
+    width: min(calc(100% - 32px), var(--container-width));
+  }
+}
