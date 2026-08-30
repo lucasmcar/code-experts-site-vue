@@ -166,10 +166,13 @@
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import { useRecaptcha } from '../composables/useRecaptcha'
 
 const { execute } = useRecaptcha()
+const loading = ref(false)
+const success = ref(false)
+const error = ref('')
 
 const whatsappNumber = '555196699337'
 
