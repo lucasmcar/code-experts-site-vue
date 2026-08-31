@@ -39,6 +39,11 @@
               :href="whatsappLink"
               target="_blank"
               rel="noopener noreferrer"
+              @click="
+                trackEvent('whatsapp_click', {
+                  location: 'contact',
+                })
+              "
               class="contact-method"
             >
               <div class="contact-method__icon">↗</div>
@@ -189,10 +194,20 @@ const whatsappLink = computed(() => {
   return `https://wa.me/${whatsappNumber}`
 })
 
+function trackEvent(eventName, parameters = {}) {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, parameters)
+  }
+}
+
 async function sendToWhatsApp() {
   loading.value = true
   success.value = false
   error.value = ''
+
+  trackEvent('contact_form_submit', {
+    form_name: 'contact',
+  })
 
   try {
     const recaptchaToken = await execute('contact')
@@ -217,6 +232,10 @@ async function sendToWhatsApp() {
     }
 
     success.value = true
+
+    trackEvent('contact_form_success', {
+      form_name: 'contact',
+    })
 
     /*
      * Aqui ainda não abrimos o WhatsApp.
