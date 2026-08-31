@@ -5,6 +5,8 @@ import SolutionsView from '../views/SolutionsView.vue'
 import ProjectsView from '../views/ProjectsView.vue'
 import AboutView from '../views/AboutView.vue'
 import ContactView from '../views/ContactView.vue'
+import BlogView from '@/views/BlogView.vue'
+import BlogPostView from '@/views/BlogPostView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +40,18 @@ const router = createRouter({
       path: '/contato',
       name: 'contact',
       component: ContactView,
+    },
+
+    {
+      path: '/blog',
+      name: 'blog',
+      component: BlogView,
+    },
+
+    {
+      path: '/blog/:slug',
+      name: 'blog-post',
+      component: BlogPostView,
     },
   ],
 })
