@@ -13,6 +13,8 @@
         <RouterLink to="/sobre"> Sobre </RouterLink>
 
         <RouterLink to="/contato"> Contato </RouterLink>
+
+        <RouterLink to="/blog"> Blog </RouterLink>
       </nav>
 
       <RouterLink to="/contato" class="header__button"> Fale conosco </RouterLink>
