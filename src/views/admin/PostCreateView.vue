@@ -142,6 +142,16 @@ async function getProfileId() {
 |--------------------------------------------------------------------------
 */
 
+const saveDraft = () => {
+  status.value = 'draft'
+  savePost()
+}
+
+const post = () => {
+  status.value = 'published'
+  savePost()
+}
+
 async function savePost() {
   error.value = ''
   success.value = ''
@@ -237,27 +247,11 @@ onMounted(() => {
       </div>
 
       <div class="header-actions">
-        <button
-          type="button"
-          class="button secondary"
-          :disabled="loading"
-          @click="
-            status = 'draft'
-            savePost()
-          "
-        >
+        <button type="button" class="button secondary" :disabled="loading" @click="saveDraft">
           Salvar rascunho
         </button>
 
-        <button
-          type="button"
-          class="button primary"
-          :disabled="loading"
-          @click="
-            status = 'published'
-            savePost()
-          "
-        >
+        <button type="button" class="button primary" :disabled="loading" @click="savePost">
           {{ loading ? 'Salvando...' : 'Publicar artigo' }}
         </button>
       </div>
