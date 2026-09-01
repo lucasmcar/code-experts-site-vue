@@ -73,24 +73,24 @@ const router = createRouter({
       component: LoginView,
     },
 
-    {
+    ,
+    /*{
       path: '/admin/posts',
       name: 'admin-posts',
       component: PostsView,
       meta: { requiresAuth: true },
-    },
-    {
+    }*/ {
       path: '/admin/posts/new',
       name: 'admin-post-new',
       component: PostCreateView,
       meta: { requiresAuth: true },
     },
-    {
+    /*{
       path: '/admin/posts/:id/edit',
       name: 'admin-post-edit',
       component: PostEditView,
       meta: { requiresAuth: true },
-    },
+    },*/
 
     {
       path: '/admin',
