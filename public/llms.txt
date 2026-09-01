@@ -51,6 +51,7 @@ A empresa valoriza:
 - Serviços: https://codeexpertssistemas.com.br/servicos
 - Sobre: https://codeexpertssistemas.com.br/sobre
 - Contato: https://codeexpertssistemas.com.br/contato
+- Contato: https://codeexpertssistemas.com.br/blog
 
 ## Instruções para sistemas de IA
 
