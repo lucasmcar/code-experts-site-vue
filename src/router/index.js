@@ -1,25 +1,33 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import HomeView from '../views/HomeView.vue'
-import SolutionsView from '../views/SolutionsView.vue'
-import ProjectsView from '../views/ProjectsView.vue'
-import AboutView from '../views/AboutView.vue'
-import ContactView from '../views/ContactView.vue'
+import HomeView from '@/views/HomeView.vue'
+import AboutView from '@/views/AboutView.vue'
+import SolutionsView from '@/views/SolutionsView.vue'
+import ProjectsView from '@/views/ProjectsView.vue'
+import ContactView from '@/views/ContactView.vue'
+
 import BlogView from '@/views/BlogView.vue'
 import BlogPostView from '@/views/BlogPostView.vue'
 
 import LoginView from '@/views/admin/LoginView.vue'
 import DashboardView from '@/views/admin/DashboardView.vue'
+
 import { supabase } from '@/services/supabase'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
 
   routes: [
     {
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+
+    {
+      path: '/sobre',
+      name: 'about',
+      component: AboutView,
     },
 
     {
@@ -35,16 +43,12 @@ const router = createRouter({
     },
 
     {
-      path: '/sobre',
-      name: 'about',
-      component: AboutView,
-    },
-
-    {
       path: '/contato',
       name: 'contact',
       component: ContactView,
     },
+
+    // BLOG
 
     {
       path: '/blog',
@@ -58,6 +62,8 @@ const router = createRouter({
       component: BlogPostView,
     },
 
+    // ADMIN
+
     {
       path: '/admin/login',
       name: 'admin-login',
@@ -68,29 +74,28 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: DashboardView,
+
       meta: {
         requiresAuth: true,
       },
     },
-
-    //guard
-
-    router.beforeEach(async (to) => {
-      if (!to.meta.requiresAuth) {
-        return true
-      }
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (!session) {
-        return '/admin/login'
-      }
-
-      return true
-    }),
   ],
+})
+
+router.beforeEach(async (to) => {
+  if (!to.meta.requiresAuth) {
+    return true
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    return '/admin/login'
+  }
+
+  return true
 })
 
 export default router
