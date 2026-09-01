@@ -11,6 +11,9 @@ import BlogPostView from '@/views/BlogPostView.vue'
 
 import LoginView from '@/views/admin/LoginView.vue'
 import DashboardView from '@/views/admin/DashboardView.vue'
+import PostsView from '@/views/admin/PostsView.vue'
+import PostCreateView from '@/views/admin/PostCreateView.vue'
+import PostEditView from '@/views/admin/PostEditView.vue'
 
 import { supabase } from '@/services/supabase'
 
