@@ -85,6 +85,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useHead } from '@unhead/vue'
 
 import { posts } from '@/data/posts'
 
@@ -93,6 +94,50 @@ const route = useRoute()
 const post = computed(() => {
   return posts.find((post) => post.slug === route.params.slug)
 })
+
+useHead(() => ({
+  title: post.value ? `${post.value.title} | Code Experts` : 'Artigo não encontrado | Code Experts',
+
+  meta: [
+    {
+      name: 'description',
+      content:
+        post.value?.excerpt ||
+        'Conteúdos sobre tecnologia, gestão e automação para pequenas empresas.',
+    },
+
+    {
+      property: 'og:title',
+      content: post.value?.title || 'Blog | Code Experts',
+    },
+
+    {
+      property: 'og:description',
+      content: post.value?.excerpt || '',
+    },
+
+    {
+      property: 'og:type',
+      content: 'article',
+    },
+
+    {
+      property: 'og:url',
+      content: post.value
+        ? `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
+        : 'https://codeexpertssistemas.com.br/blog',
+    },
+  ],
+
+  link: [
+    {
+      rel: 'canonical',
+      href: post.value
+        ? `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
+        : 'https://codeexpertssistemas.com.br/blog',
+    },
+  ],
+}))
 </script>
 
 <style scoped>
