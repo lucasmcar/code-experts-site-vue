@@ -59,7 +59,10 @@
       <div class="container post-cta__content">
         <span class="eyebrow"> Code Experts Sistemas </span>
 
-        <h2>Sua empresa também pode <span>usar melhor a tecnologia.</span></h2>
+        <h2>
+          Sua empresa também pode
+          <span>usar melhor a tecnologia.</span>
+        </h2>
 
         <p>Entre em contato e conte para nós qual desafio sua empresa está enfrentando.</p>
 
@@ -71,6 +74,7 @@
     </section>
   </main>
 
+  <!-- ARTIGO NÃO ENCONTRADO -->
   <main v-else class="not-found">
     <div class="container">
       <span class="eyebrow"> Blog </span>
@@ -91,53 +95,99 @@ import { posts } from '@/data/posts'
 
 const route = useRoute()
 
+/*
+ * Localiza o artigo através do slug da URL.
+ *
+ * Exemplo:
+ * /blog/principais-problemas-ti-empresas
+ *
+ * route.params.slug:
+ * principais-problemas-ti-empresas
+ */
 const post = computed(() => {
   return posts.find((post) => post.slug === route.params.slug)
 })
 
-useHead(() => ({
-  title: post.value ? `${post.value.title} | Code Experts` : 'Artigo não encontrado | Code Experts',
+/*
+ * SEO DINÂMICO
+ *
+ * O conteúdo abaixo será alterado automaticamente
+ * de acordo com o artigo que estiver sendo visualizado.
+ */
+useHead(() => {
+  // Caso o artigo não exista
+  if (!post.value) {
+    return {
+      title: 'Artigo não encontrado | Code Experts',
 
-  meta: [
-    {
-      name: 'description',
-      content:
-        post.value?.excerpt ||
-        'Conteúdos sobre tecnologia, gestão e automação para pequenas empresas.',
-    },
+      meta: [
+        {
+          name: 'robots',
+          content: 'noindex, nofollow',
+        },
+      ],
+    }
+  }
 
-    {
-      property: 'og:title',
-      content: post.value?.title || 'Blog | Code Experts',
-    },
+  const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
 
-    {
-      property: 'og:description',
-      content: post.value?.excerpt || '',
-    },
+  return {
+    title: `${post.value.title} | Code Experts`,
 
-    {
-      property: 'og:type',
-      content: 'article',
-    },
+    meta: [
+      // Meta description
+      {
+        name: 'description',
+        content: post.value.excerpt,
+      },
 
-    {
-      property: 'og:url',
-      content: post.value
-        ? `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
-        : 'https://codeexpertssistemas.com.br/blog',
-    },
-  ],
+      // Open Graph
+      {
+        property: 'og:title',
+        content: post.value.title,
+      },
 
-  link: [
-    {
-      rel: 'canonical',
-      href: post.value
-        ? `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
-        : 'https://codeexpertssistemas.com.br/blog',
-    },
-  ],
-}))
+      {
+        property: 'og:description',
+        content: post.value.excerpt,
+      },
+
+      {
+        property: 'og:type',
+        content: 'article',
+      },
+
+      {
+        property: 'og:url',
+        content: url,
+      },
+
+      {
+        property: 'og:site_name',
+        content: 'Code Experts Sistemas',
+      },
+
+      // Informações do artigo
+      {
+        property: 'article:author',
+        content: post.value.author,
+      },
+
+      {
+        property: 'article:section',
+        content: post.value.category,
+      },
+    ],
+
+    link: [
+      // URL canônica
+      {
+        rel: 'canonical',
+        href: url,
+      },
+    ],
+  }
+})
 </script>
 
 <style scoped>
