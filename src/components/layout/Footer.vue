@@ -3,7 +3,7 @@
     <div class="container">
       <div class="footer__content">
         <div>
-          <strong>CODE EXPERTS</strong>
+          <strong>CODE EXPERTS SISTEMAS</strong>
 
           <p>Tecnologia para simplificar processos e transformar negócios.</p>
         </div>

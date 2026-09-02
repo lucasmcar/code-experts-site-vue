@@ -2,7 +2,7 @@
   <main class="login-page">
     <div class="login-card">
       <div class="login-brand">
-        <RouterLink to="/"> Code Experts </RouterLink>
+        <RouterLink to="/"> Code Experts Sistemas </RouterLink>
       </div>
 
       <div class="login-header">

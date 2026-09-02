@@ -118,7 +118,7 @@ useHead(() => {
   // Caso o artigo não exista
   if (!post.value) {
     return {
-      title: 'Artigo não encontrado | Code Experts',
+      title: 'Artigo não encontrado | Code Experts Sistemas',
 
       meta: [
         {
@@ -132,7 +132,7 @@ useHead(() => {
   const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
 
   return {
-    title: `${post.value.title} | Code Experts`,
+    title: `${post.value.title} | Code Experts Sistemas`,
 
     meta: [
       // Meta description

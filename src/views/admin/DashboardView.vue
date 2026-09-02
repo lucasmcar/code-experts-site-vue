@@ -2,7 +2,7 @@
   <main class="admin-page">
     <header class="admin-header">
       <div class="container admin-header__content">
-        <RouterLink to="/" class="admin-logo"> Code Experts </RouterLink>
+        <RouterLink to="/" class="admin-logo"> Code Experts Sistemas </RouterLink>
 
         <div class="admin-user">
           <span> Administração </span>
@@ -20,7 +20,7 @@
 
             <h1>Olá, seja bem-vindo.</h1>
 
-            <p>Gerencie os conteúdos do blog da Code Experts.</p>
+            <p>Gerencie os conteúdos do blog da Code Experts Sistemas.</p>
           </div>
 
           <RouterLink to="/admin/posts/new" class="primary-button"> + Novo artigo </RouterLink>
