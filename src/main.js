@@ -8,6 +8,14 @@ import './assets/styles/reset.css'
 import './assets/styles/variables.css'
 import './assets/styles/main.css'
 
+import { initMetaPixel, trackPageView } from './services/metaPixel'
+
+initMetaPixel()
+
+router.afterEach(() => {
+  trackPageView()
+})
+
 const app = createApp(App)
 
 app.use(router)

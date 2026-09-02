@@ -290,7 +290,16 @@
   </main>
 </template>
 
-<script setup></script>
+<script setup>
+import { onMounted } from 'vue'
+import { trackEvent } from '@/services/metaPixel'
+
+onMounted(() => {
+  trackEvent('ViewContent', {
+    content_name: 'Soluções',
+  })
+})
+</script>
 
 <style scoped>
 .solutions-page {

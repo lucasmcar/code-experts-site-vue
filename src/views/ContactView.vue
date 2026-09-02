@@ -40,9 +40,10 @@
               target="_blank"
               rel="noopener noreferrer"
               @click="
-                trackEvent('whatsapp_click', {
+                (trackEvent('whatsapp_click', {
                   location: 'contact',
-                })
+                }),
+                trackWhatsApp())
               "
               class="contact-method"
             >
@@ -173,6 +174,8 @@
 <script setup>
 import { reactive, computed, ref } from 'vue'
 import { useRecaptcha } from '../composables/useRecaptcha'
+import { onMounted } from 'vue'
+import { trackEvent } from '@/services/metaPixel'
 
 const { execute } = useRecaptcha()
 const loading = ref(false)
@@ -180,6 +183,12 @@ const success = ref(false)
 const error = ref('')
 
 const whatsappNumber = '555196699337'
+
+function trackWhatsApp() {
+  trackEvent('Contact', {
+    method: 'WhatsApp',
+  })
+}
 
 const form = reactive({
   name: '',
