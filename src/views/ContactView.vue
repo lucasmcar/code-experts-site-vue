@@ -175,7 +175,7 @@
 import { reactive, computed, ref } from 'vue'
 import { useRecaptcha } from '../composables/useRecaptcha'
 import { onMounted } from 'vue'
-import { trackEvent } from '@/services/metaPixel'
+import { trackEvent as trackMetaEvent } from '@/services/metaPixel'
 
 const { execute } = useRecaptcha()
 const loading = ref(false)
@@ -185,7 +185,7 @@ const error = ref('')
 const whatsappNumber = '555196699337'
 
 function trackWhatsApp() {
-  trackEvent('Contact', {
+  trackMetaEvent('Contact', {
     method: 'WhatsApp',
   })
 }
