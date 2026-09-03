@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="container header__content">
-      <RouterLink to="/" class="header__logo"> CODE EXPERTS </RouterLink>
+      <RouterLink to="/" class="header__logo"> CODE EXPERTS SISTEMAS</RouterLink>
 
       <nav class="header__nav">
         <RouterLink to="/"> Início </RouterLink>

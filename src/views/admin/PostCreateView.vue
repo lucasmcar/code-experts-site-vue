@@ -243,7 +243,7 @@ onMounted(() => {
 
         <h1>Novo artigo</h1>
 
-        <p>Crie um novo artigo para o blog da Code Experts.</p>
+        <p>Crie um novo artigo para o blog da Code Experts Sistemas.</p>
       </div>
 
       <div class="header-actions">

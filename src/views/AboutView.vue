@@ -25,9 +25,9 @@
 
         <div class="purpose-content">
           <p>
-            A Code Experts nasceu com um propósito claro: tornar a tecnologia mais acessível e útil
-            para empresas que precisam melhorar seus processos, mas nem sempre encontram soluções
-            adequadas às suas necessidades.
+            A Code Experts Sistemas nasceu com um propósito claro: tornar a tecnologia mais
+            acessível e útil para empresas que precisam melhorar seus processos, mas nem sempre
+            encontram soluções adequadas às suas necessidades.
           </p>
 
           <p>
@@ -202,8 +202,8 @@
         </h2>
 
         <p>
-          Conte para a Code Experts o que sua empresa precisa e descubra como a tecnologia pode
-          ajudar.
+          Conte para a Code Experts Sistemas o que sua empresa precisa e descubra como a tecnologia
+          pode ajudar.
         </p>
 
         <RouterLink to="/contato" class="cta-button">

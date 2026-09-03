@@ -28,6 +28,23 @@
         Code Experts Sistemas LTDA.
       </div>
     </div>
+    <div class="legal-links">
+      <a
+        href="https://www.iubenda.com/privacy-policy/82939069/cookie-policy"
+        class="iubenda-white iubenda-noiframe iubenda-embed"
+        title="Política de Cookies"
+      >
+        Política de Cookies
+      </a>
+
+      <a
+        href="https://www.iubenda.com/privacy-policy/82939069"
+        class="iubenda-white iubenda-noiframe iubenda-embed"
+        title="Política de Privacidade"
+      >
+        Política de Privacidade
+      </a>
+    </div>
   </footer>
 </template>
 

@@ -9,7 +9,7 @@
         <p>Conte para nós o que sua empresa precisa. Podemos encontrar uma solução.</p>
 
         <Button to="/contato" variant="outline" size="large" arrow>
-          Fale com a Code Experts
+          Fale com a Code Experts Sistemas
         </Button>
       </div>
     </div>
