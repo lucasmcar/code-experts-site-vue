@@ -210,7 +210,7 @@ const error = ref('')
 const search = ref('')
 const statusFilter = ref('all')
 
-async function loadPosts() {
+/*async function loadPosts() {
   loading.value = true
   error.value = ''
 
@@ -247,6 +247,45 @@ async function loadPosts() {
   } finally {
     loading.value = false
   }
+}*/
+
+async function loadPosts() {
+  loading.value = true
+  error.value = ''
+
+  const { data, error: supabaseError } = await supabase
+    .from('posts')
+    .select(
+      `
+      id,
+      title,
+      slug,
+      excerpt,
+      status,
+      featured_image,
+      published_at,
+      created_at,
+      updated_at,
+      categories (
+        id,
+        name
+      )
+    `,
+    )
+    .order('created_at', { ascending: false })
+
+  console.log('POSTS:', data)
+  console.log('ERRO POSTS:', supabaseError)
+
+  if (supabaseError) {
+    error.value = supabaseError.message
+    posts.value = []
+    loading.value = false
+    return
+  }
+
+  posts.value = data || []
+  loading.value = false
 }
 
 const filteredPosts = computed(() => {
