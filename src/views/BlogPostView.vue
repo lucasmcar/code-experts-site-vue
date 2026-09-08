@@ -1,5 +1,15 @@
 <template>
-  <main v-if="post" class="post-page">
+  <!-- CARREGANDO -->
+  <main v-if="loading" class="not-found">
+    <div class="container">
+      <span class="eyebrow"> Blog </span>
+
+      <h1>Carregando artigo...</h1>
+    </div>
+  </main>
+
+  <!-- ARTIGO -->
+  <main v-else-if="post" class="post-page">
     <!-- HEADER -->
     <section class="post-hero">
       <div class="container post-hero__content">
@@ -42,12 +52,14 @@
       <div class="container">
         <div class="post-content">
           <template v-for="(block, index) in post.content" :key="index">
+            <!-- PARÁGRAFO -->
             <p v-if="block.type === 'paragraph'">
-              {{ block.text }}
+              {{ block.content || block.text }}
             </p>
 
-            <h2 v-if="block.type === 'heading'">
-              {{ block.text }}
+            <!-- TÍTULO -->
+            <h2 v-else-if="block.type === 'heading'">
+              {{ block.content || block.text }}
             </h2>
           </template>
         </div>
@@ -87,35 +99,236 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@unhead/vue'
 
-import { posts } from '@/data/posts'
+import { supabase } from '@/services/supabase'
 
 const route = useRoute()
 
 /*
- * Localiza o artigo através do slug da URL.
- *
- * Exemplo:
- * /blog/principais-problemas-ti-empresas
- *
- * route.params.slug:
- * principais-problemas-ti-empresas
- */
-const post = computed(() => {
-  return posts.find((post) => post.slug === route.params.slug)
+|--------------------------------------------------------------------------
+| ESTADO
+|--------------------------------------------------------------------------
+*/
+
+const post = ref(null)
+
+const loading = ref(true)
+
+const error = ref(null)
+
+/*
+|--------------------------------------------------------------------------
+| CARREGAR POST
+|--------------------------------------------------------------------------
+*/
+
+async function loadPost() {
+  loading.value = true
+  error.value = null
+
+  const { data, error: supabaseError } = await supabase
+    .from('posts')
+    .select(
+      `
+      id,
+      title,
+      slug,
+      excerpt,
+      content,
+      featured_image,
+      status,
+      published_at,
+      created_at,
+      categories (
+        id,
+        name
+      ),
+      profiles (
+        id,
+        name
+      )
+    `,
+    )
+    .eq('slug', route.params.slug)
+    .eq('status', 'published')
+    .single()
+
+  console.log('POST:', data)
+  console.log('ERRO:', supabaseError)
+
+  /*
+   * Caso o Supabase retorne erro
+   */
+  if (supabaseError) {
+    console.error('Erro ao carregar artigo:', supabaseError)
+
+    error.value = supabaseError.message
+
+    post.value = null
+
+    loading.value = false
+
+    return
+  }
+
+  /*
+   * Caso nenhum post seja encontrado
+   */
+  if (!data) {
+    post.value = null
+
+    loading.value = false
+
+    return
+  }
+
+  /*
+   * Interpretar o conteúdo
+   *
+   * O CMS salva o conteúdo como JSON.
+   *
+   * Exemplo:
+   *
+   * [
+   *   {
+   *     type: 'paragraph',
+   *     content: 'Texto do artigo'
+   *   },
+   *   {
+   *     type: 'heading',
+   *     content: 'Título'
+   *   }
+   * ]
+   */
+
+  let content = []
+
+  try {
+    if (typeof data.content === 'string') {
+      content = JSON.parse(data.content)
+    } else if (Array.isArray(data.content)) {
+      content = data.content
+    }
+  } catch (parseError) {
+    console.error('Erro ao interpretar conteúdo do artigo:', parseError)
+
+    content = []
+  }
+
+  /*
+   * Monta o objeto utilizado pelo template
+   */
+
+  post.value = {
+    ...data,
+
+    /*
+     * Categoria
+     */
+    category: data.categories?.name || 'Tecnologia',
+
+    /*
+     * Autor
+     */
+    author: data.profiles?.name || 'Code Experts Sistemas',
+
+    /*
+     * Data de publicação
+     */
+    date: formatDate(data.published_at || data.created_at),
+
+    /*
+     * Tempo estimado de leitura
+     */
+    readingTime: calculateReadingTime(content),
+
+    /*
+     * Conteúdo convertido
+     */
+    content,
+  }
+
+  loading.value = false
+}
+
+/*
+|--------------------------------------------------------------------------
+| FORMATAR DATA
+|--------------------------------------------------------------------------
+*/
+
+function formatDate(date) {
+  if (!date) {
+    return ''
+  }
+
+  return new Date(date).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+/*
+|--------------------------------------------------------------------------
+| CALCULAR TEMPO DE LEITURA
+|--------------------------------------------------------------------------
+*/
+
+function calculateReadingTime(content) {
+  /*
+   * Junta o texto dos blocos.
+   *
+   * Aceita tanto:
+   *
+   * block.content
+   *
+   * quanto:
+   *
+   * block.text
+   *
+   * Isso mantém compatibilidade
+   * com os posts antigos.
+   */
+
+  const text = content.map((block) => block.content || block.text || '').join(' ')
+
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+
+  /*
+   * Média aproximada:
+   * 200 palavras por minuto.
+   */
+
+  const minutes = Math.max(1, Math.ceil(words / 200))
+
+  return `${minutes} min de leitura`
+}
+
+/*
+|--------------------------------------------------------------------------
+| CARREGAR
+|--------------------------------------------------------------------------
+*/
+
+onMounted(() => {
+  loadPost()
 })
 
 /*
- * SEO DINÂMICO
- *
- * O conteúdo abaixo será alterado automaticamente
- * de acordo com o artigo que estiver sendo visualizado.
- */
+|--------------------------------------------------------------------------
+| SEO
+|--------------------------------------------------------------------------
+*/
+
 useHead(() => {
-  // Caso o artigo não exista
+  /*
+   * Artigo não encontrado
+   */
+
   if (!post.value) {
     return {
       title: 'Artigo não encontrado | Code Experts Sistemas',
@@ -132,16 +345,26 @@ useHead(() => {
   const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
 
   return {
+    /*
+     * TITLE
+     */
+
     title: `${post.value.title} | Code Experts Sistemas`,
 
+    /*
+     * META
+     */
+
     meta: [
-      // Meta description
       {
         name: 'description',
         content: post.value.excerpt,
       },
 
-      // Open Graph
+      /*
+       * Open Graph
+       */
+
       {
         property: 'og:title',
         content: post.value.title,
@@ -167,7 +390,10 @@ useHead(() => {
         content: 'Code Experts Sistemas',
       },
 
-      // Informações do artigo
+      /*
+       * Informações do artigo
+       */
+
       {
         property: 'article:author',
         content: post.value.author,
@@ -179,8 +405,11 @@ useHead(() => {
       },
     ],
 
+    /*
+     * URL CANÔNICA
+     */
+
     link: [
-      // URL canônica
       {
         rel: 'canonical',
         href: url,
@@ -195,7 +424,9 @@ useHead(() => {
   background: var(--color-background);
 }
 
-/* HERO */
+/* =========================================================
+   HERO
+========================================================= */
 
 .post-hero {
   padding: 80px 0 70px;
@@ -232,6 +463,7 @@ useHead(() => {
   font-weight: 800;
 
   text-transform: uppercase;
+
   letter-spacing: 1.5px;
 }
 
@@ -241,6 +473,7 @@ useHead(() => {
   margin-top: 18px;
 
   font-size: clamp(40px, 6vw, 65px);
+
   line-height: 1.05;
 
   letter-spacing: -2.5px;
@@ -254,11 +487,13 @@ useHead(() => {
   color: var(--color-text-secondary);
 
   font-size: 19px;
+
   line-height: 1.7;
 }
 
 .post-meta {
   display: flex;
+
   flex-wrap: wrap;
 
   gap: 10px;
@@ -270,7 +505,9 @@ useHead(() => {
   font-size: 13px;
 }
 
-/* CONTEÚDO */
+/* =========================================================
+   CONTEÚDO
+========================================================= */
 
 .post-content-section {
   background: var(--color-background);
@@ -288,20 +525,25 @@ useHead(() => {
   color: var(--color-text);
 
   font-size: 18px;
+
   line-height: 1.85;
 }
 
 .post-content h2 {
   margin-top: 50px;
+
   margin-bottom: 20px;
 
   font-size: 30px;
+
   line-height: 1.2;
 
   letter-spacing: -1px;
 }
 
-/* CTA */
+/* =========================================================
+   CTA
+========================================================= */
 
 .post-cta {
   background: var(--color-background-secondary);
@@ -317,6 +559,7 @@ useHead(() => {
   margin-top: 15px;
 
   font-size: clamp(34px, 5vw, 55px);
+
   line-height: 1.1;
 
   letter-spacing: -2px;
@@ -336,23 +579,29 @@ useHead(() => {
   color: var(--color-text-secondary);
 
   font-size: 17px;
+
   line-height: 1.7;
 }
 
 .cta-button {
   display: inline-flex;
+
   align-items: center;
+
   gap: 15px;
 
   margin-top: 35px;
+
   padding: 14px 22px;
 
   border-radius: var(--radius-md);
 
   background: var(--color-primary);
+
   color: white;
 
   font-size: 15px;
+
   font-weight: 700;
 }
 
@@ -360,7 +609,9 @@ useHead(() => {
   font-size: 18px;
 }
 
-/* NOT FOUND */
+/* =========================================================
+   NOT FOUND / LOADING
+========================================================= */
 
 .not-found {
   padding: 150px 0;
@@ -373,6 +624,10 @@ useHead(() => {
 
   font-size: 45px;
 }
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 600px) {
   .post-hero {
