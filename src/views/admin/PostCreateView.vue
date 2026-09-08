@@ -123,7 +123,7 @@ async function getProfileId() {
   }
 
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
+    .from('profile')
     .select('id')
     .eq('auth_user_id', user.id)
     .single()
