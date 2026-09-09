@@ -146,7 +146,7 @@ async function loadPost() {
         id,
         name
       ),
-      profiles (
+      profile (
         id,
         name
       )
@@ -233,7 +233,7 @@ async function loadPost() {
     /*
      * Autor
      */
-    author: data.profiles?.name || 'Code Experts Sistemas',
+    author: data.profile?.name || 'Code Experts Sistemas',
 
     /*
      * Data de publicação
