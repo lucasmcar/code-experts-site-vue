@@ -99,6 +99,7 @@ async function loadCategories() {
 
   if (categoryError) {
     error.value = 'Não foi possível carregar as categorias.'
+
     console.error(categoryError)
   } else {
     categories.value = data || []
@@ -134,6 +135,60 @@ async function getProfileId() {
   }
 
   return profile.id
+}
+
+/*
+|--------------------------------------------------------------------------
+| Enviar notificação
+|--------------------------------------------------------------------------
+*/
+
+async function sendNewPostNotification(post) {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session?.access_token) {
+      throw new Error('Sessão do administrador não encontrada.')
+    }
+
+    const response = await fetch('/.netlify/functions/send-new-post-notification', {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+
+      body: JSON.stringify({
+        title: post.title,
+        excerpt: post.excerpt,
+        slug: post.slug,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Não foi possível enviar as notificações.')
+    }
+
+    console.log('Resultado do envio das notificações:', result)
+
+    return result
+  } catch (err) {
+    /*
+     * A publicação do artigo não deve ser desfeita
+     * caso a notificação falhe.
+     */
+    console.error('Erro ao enviar notificação do novo artigo:', err)
+
+    return {
+      success: false,
+      error: err.message || 'Erro ao enviar notificações.',
+    }
+  }
 }
 
 /*
@@ -200,18 +255,48 @@ async function savePost() {
       published_at: status.value === 'published' ? new Date().toISOString() : null,
     }
 
-    const { error: insertError } = await supabase.from('posts').insert(postData)
+    /*
+     * Salva o artigo e retorna o registro criado.
+     */
+    const { data: createdPost, error: insertError } = await supabase
+      .from('posts')
+      .insert(postData)
+      .select('id, title, slug, excerpt, status, published_at')
+      .single()
 
     if (insertError) {
       console.error(insertError)
       throw new Error(insertError.message)
     }
 
-    success.value = 'Artigo salvo com sucesso!'
+    /*
+     * O artigo só dispara uma notificação quando
+     * é criado diretamente como publicado.
+     */
+    let notificationResult = null
+
+    if (createdPost.status === 'published') {
+      notificationResult = await sendNewPostNotification(createdPost)
+    }
+
+    /*
+     * Mensagem de sucesso.
+     */
+    if (createdPost.status === 'published' && notificationResult?.success) {
+      success.value = 'Artigo publicado e notificações enviadas!'
+    } else if (
+      createdPost.status === 'published' &&
+      notificationResult &&
+      !notificationResult.success
+    ) {
+      success.value = 'Artigo publicado, mas não foi possível enviar as notificações.'
+    } else {
+      success.value = 'Artigo salvo como rascunho!'
+    }
 
     setTimeout(() => {
       router.push('/admin/posts')
-    }, 800)
+    }, 1200)
   } catch (err) {
     console.error(err)
     error.value = err.message || 'Erro ao salvar o artigo.'
@@ -251,7 +336,7 @@ onMounted(() => {
           Salvar rascunho
         </button>
 
-        <button type="button" class="button primary" :disabled="loading" @click="savePost">
+        <button type="button" class="button primary" :disabled="loading" @click="post">
           {{ loading ? 'Salvando...' : 'Publicar artigo' }}
         </button>
       </div>
@@ -303,7 +388,7 @@ onMounted(() => {
             class="textarea"
             rows="4"
             placeholder="Escreva um breve resumo do artigo..."
-          />
+          ></textarea>
         </section>
 
         <!-- Conteúdo -->
@@ -360,7 +445,7 @@ onMounted(() => {
               class="content-textarea"
               rows="6"
               placeholder="Escreva o conteúdo do parágrafo..."
-            />
+            ></textarea>
           </div>
 
           <div v-if="content.length > 0" class="add-block">
