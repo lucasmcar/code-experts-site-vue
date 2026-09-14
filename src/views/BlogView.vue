@@ -26,6 +26,40 @@
           <h2>Conheça nossos artigos.</h2>
         </div>
 
+        <!-- AVISO DE NOTIFICAÇÕES -->
+
+        <div v-if="showNotificationPrompt" class="notification-prompt">
+          <div class="notification-prompt__content">
+            <div class="notification-prompt__icon">🔔</div>
+
+            <div class="notification-prompt__text">
+              <h3>Receba novos artigos</h3>
+
+              <p>Quer ser avisado quando publicarmos um novo conteúdo no blog?</p>
+            </div>
+          </div>
+
+          <div class="notification-prompt__actions">
+            <button
+              type="button"
+              class="notification-button notification-button--secondary"
+              :disabled="notificationLoading"
+              @click="dismissNotificationPrompt"
+            >
+              Agora não
+            </button>
+
+            <button
+              type="button"
+              class="notification-button notification-button--primary"
+              :disabled="notificationLoading"
+              @click="ativarNotificacoes"
+            >
+              {{ notificationLoading ? 'Ativando...' : 'Quero receber' }}
+            </button>
+          </div>
+        </div>
+
         <!-- CARREGANDO -->
 
         <div v-if="loading" class="blog-loading">
@@ -123,56 +157,106 @@
       </div>
     </section>
   </main>
-  <button @click="ativarNotificacoes">🔔 Quero receber novos artigos</button>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import { supabase } from '@/services/supabase'
-
 import { requestNotificationPermission } from '@/services/firebase'
 
+const posts = ref([])
+const loading = ref(true)
+const error = ref('')
+
+const showNotificationPrompt = ref(false)
+const notificationLoading = ref(false)
+
+const NOTIFICATION_DISMISSED_KEY = 'code_experts_notification_prompt_dismissed'
+
 async function ativarNotificacoes() {
+  if (notificationLoading.value) {
+    return
+  }
+
+  notificationLoading.value = true
+
   try {
     const token = await requestNotificationPermission()
 
-    const { error } = await supabase.from('push_subscriptions').insert({
+    const { error: supabaseError } = await supabase.from('push_subscriptions').insert({
       token,
       platform: 'web',
       user_agent: navigator.userAgent,
       active: true,
     })
 
-    if (error) {
-      // O token já está cadastrado.
-      // Nesse caso, as notificações continuam ativadas.
-      if (error.code === '23505') {
+    if (supabaseError) {
+      // Token já cadastrado.
+      // Nesse caso, consideramos a inscrição válida.
+      if (supabaseError.code === '23505') {
         console.log('TOKEN FCM já estava cadastrado:', token)
+      } else {
+        console.error('Erro ao salvar token no Supabase:', supabaseError)
 
-        alert('Notificações já estavam ativadas neste navegador.')
-        return
+        throw new Error(
+          'As notificações foram autorizadas, mas não foi possível registrar este navegador.',
+        )
       }
-
-      console.error('Erro ao salvar token no Supabase:', error)
-
-      throw new Error(
-        'As notificações foram autorizadas, mas não foi possível registrar este navegador.',
-      )
     }
 
     console.log('TOKEN FCM:', token)
 
-    alert('Notificações ativadas com sucesso!')
-  } catch (error) {
-    console.error('Erro ao ativar notificações:', error)
+    // Só escondemos o aviso depois que tudo deu certo.
+    showNotificationPrompt.value = false
 
-    alert(error.message || 'Não foi possível ativar as notificações.')
+    // Remove o estado "Agora não", caso exista.
+    sessionStorage.removeItem(NOTIFICATION_DISMISSED_KEY)
+
+    alert('Notificações ativadas com sucesso!')
+  } catch (err) {
+    console.error('Erro ao ativar notificações:', err)
+
+    alert(err.message || 'Não foi possível ativar as notificações.')
+  } finally {
+    notificationLoading.value = false
   }
 }
 
-const posts = ref([])
-const loading = ref(true)
-const error = ref('')
+function dismissNotificationPrompt() {
+  sessionStorage.setItem(NOTIFICATION_DISMISSED_KEY, 'true')
+
+  showNotificationPrompt.value = false
+}
+
+function verificarNotificacoes() {
+  // Verifica se o navegador possui suporte à API
+  // de notificações.
+  if (!('Notification' in window)) {
+    return
+  }
+
+  // Se o usuário já autorizou as notificações,
+  // não precisamos mostrar o convite.
+  if (Notification.permission === 'granted') {
+    return
+  }
+
+  // Se o usuário bloqueou as notificações,
+  // não devemos insistir.
+  if (Notification.permission === 'denied') {
+    return
+  }
+
+  // Se o usuário escolheu "Agora não" nesta sessão,
+  // não mostramos novamente.
+  const dismissed = sessionStorage.getItem(NOTIFICATION_DISMISSED_KEY)
+
+  if (dismissed === 'true') {
+    return
+  }
+
+  showNotificationPrompt.value = true
+}
 
 async function loadPosts() {
   loading.value = true
@@ -234,6 +318,7 @@ function getCategoryName(post) {
 
 onMounted(() => {
   loadPosts()
+  verificarNotificacoes()
 })
 </script>
 
@@ -311,6 +396,119 @@ onMounted(() => {
   line-height: 1.1;
 
   letter-spacing: -1.5px;
+}
+
+/* NOTIFICAÇÕES */
+
+.notification-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 25px;
+
+  margin-bottom: 45px;
+  padding: 22px 25px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-background-secondary);
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.notification-prompt__content {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+}
+
+.notification-prompt__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 46px;
+  height: 46px;
+
+  border-radius: 50%;
+
+  background: rgba(37, 99, 235, 0.1);
+
+  font-size: 22px;
+}
+
+.notification-prompt__text h3 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 17px;
+}
+
+.notification-prompt__text p {
+  margin: 5px 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.notification-prompt__actions {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
+.notification-button {
+  padding: 10px 16px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  font-family: inherit;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    background 0.2s ease;
+}
+
+.notification-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.notification-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+.notification-button--primary {
+  background: var(--color-primary);
+
+  color: white;
+}
+
+.notification-button--secondary {
+  border-color: var(--color-border);
+
+  background: var(--color-background);
+
+  color: var(--color-text);
 }
 
 /* POSTS */
@@ -582,6 +780,19 @@ onMounted(() => {
   .posts-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .notification-prompt {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notification-prompt__actions {
+    width: 100%;
+  }
+
+  .notification-button {
+    flex: 1;
+  }
 }
 
 @media (max-width: 600px) {
@@ -595,6 +806,22 @@ onMounted(() => {
 
   .posts-grid {
     grid-template-columns: 1fr;
+  }
+
+  .notification-prompt {
+    padding: 20px;
+  }
+
+  .notification-prompt__content {
+    align-items: flex-start;
+  }
+
+  .notification-prompt__actions {
+    flex-direction: column-reverse;
+  }
+
+  .notification-button {
+    width: 100%;
   }
 }
 </style>
