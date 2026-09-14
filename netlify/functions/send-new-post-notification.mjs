@@ -52,7 +52,10 @@ export default async (request) => {
       )
     }
 
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    const supabase = createClient(
+      process.env.VITE_SUPABASE_URL,
+      process.env.VITE_SUPABASE_SERVICE_ROLE_KEY,
+    )
 
     const { data: subscriptions, error: subscriptionsError } = await supabase
       .from('push_subscriptions')
