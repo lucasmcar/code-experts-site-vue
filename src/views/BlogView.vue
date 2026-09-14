@@ -123,11 +123,40 @@
       </div>
     </section>
   </main>
+  <button @click="ativarNotificacoes">🔔 Quero receber novos artigos</button>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import { supabase } from '@/services/supabase'
+
+import { requestNotificationPermission } from '@/services/firebase'
+
+async function ativarNotificacoes() {
+  try {
+    const token = await requestNotificationPermission()
+
+    await supabase.from('push_subscriptions').upsert(
+      {
+        token,
+        platform: 'web',
+        user_agent: navigator.userAgent,
+        active: true,
+      },
+      {
+        onConflict: 'token',
+      },
+    )
+
+    console.log('TOKEN FCM:', token)
+
+    alert('Notificações ativadas com sucesso!')
+  } catch (error) {
+    console.error('Erro ao ativar notificações:', error)
+
+    alert(error.message || 'Não foi possível ativar as notificações.')
+  }
+}
 
 const posts = ref([])
 const loading = ref(true)
