@@ -136,17 +136,29 @@ async function ativarNotificacoes() {
   try {
     const token = await requestNotificationPermission()
 
-    await supabase.from('push_subscriptions').upsert(
-      {
-        token,
-        platform: 'web',
-        user_agent: navigator.userAgent,
-        active: true,
-      },
-      {
-        onConflict: 'token',
-      },
-    )
+    const { error } = await supabase.from('push_subscriptions').insert({
+      token,
+      platform: 'web',
+      user_agent: navigator.userAgent,
+      active: true,
+    })
+
+    if (error) {
+      // O token já está cadastrado.
+      // Nesse caso, as notificações continuam ativadas.
+      if (error.code === '23505') {
+        console.log('TOKEN FCM já estava cadastrado:', token)
+
+        alert('Notificações já estavam ativadas neste navegador.')
+        return
+      }
+
+      console.error('Erro ao salvar token no Supabase:', error)
+
+      throw new Error(
+        'As notificações foram autorizadas, mas não foi possível registrar este navegador.',
+      )
+    }
 
     console.log('TOKEN FCM:', token)
 
