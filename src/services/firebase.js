@@ -49,7 +49,15 @@ export async function requestNotificationPermission() {
     throw new Error('Firebase Cloud Messaging não é suportado neste navegador.')
   }
 
+  // Registra o Service Worker
   const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+
+  console.log('Service Worker registrado:', registration)
+
+  // Aguarda o Service Worker ficar ativo
+  await navigator.serviceWorker.ready
+
+  console.log('Service Worker ativo:', navigator.serviceWorker.controller)
 
   const token = await getToken(messaging, {
     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
