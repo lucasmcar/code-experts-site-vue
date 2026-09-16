@@ -204,8 +204,6 @@ async function ativarNotificacoes() {
       }
     }
 
-    console.log('TOKEN FCM:', token)
-
     // Só escondemos o aviso depois que tudo deu certo.
     showNotificationPrompt.value = false
 
@@ -319,6 +317,46 @@ function getCategoryName(post) {
 onMounted(() => {
   loadPosts()
   verificarNotificacoes()
+})
+
+useHead({
+  title: 'Blog | Code Experts Sistemas',
+
+  meta: [
+    {
+      name: 'description',
+      content:
+        'Conteúdos sobre tecnologia, sistemas, automação e soluções para micro e pequenas empresas.',
+    },
+    {
+      name: 'robots',
+      content: 'index, follow',
+    },
+    {
+      property: 'og:title',
+      content: 'Blog | Code Experts Sistemas',
+    },
+    {
+      property: 'og:description',
+      content:
+        'Conteúdos sobre tecnologia, sistemas, automação e soluções para micro e pequenas empresas.',
+    },
+    {
+      property: 'og:type',
+      content: 'website',
+    },
+    {
+      property: 'og:url',
+      content: 'https://codeexpertssistemas.com.br/blog',
+    },
+  ],
+
+  link: [
+    {
+      rel: 'canonical',
+      href: 'https://codeexpertssistemas.com.br/blog',
+    },
+  ],
 })
 </script>
 
