@@ -161,6 +161,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useHead } from '@unhead/vue'
 import { supabase } from '@/services/supabase'
 import { requestNotificationPermission } from '@/services/firebase'
 
