@@ -211,6 +211,76 @@
               </div>
             </div>
           </article>
+
+          <!-- PROJETO 04 -->
+          <article class="project-card">
+            <div class="project-card__visual project-card__visual--clt">
+              <div class="clt-preview">
+                <div class="clt-preview__header">
+                  <span>CALCULADORA CLT</span>
+                </div>
+
+                <div class="clt-preview__content">
+                  <small>Salário bruto</small>
+
+                  <strong>R$ 3.500,00</strong>
+
+                  <div class="clt-preview__rows">
+                    <div>
+                      <span>INSS</span>
+                      <strong>R$ 320,00</strong>
+                    </div>
+
+                    <div>
+                      <span>IRRF</span>
+                      <strong>R$ 145,00</strong>
+                    </div>
+
+                    <div>
+                      <span>Salário líquido</span>
+                      <strong>R$ 3.035,00</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-card__content">
+              <div class="project-card__meta">
+                <span>04</span>
+
+                <span>Aplicativo</span>
+              </div>
+
+              <h3>Calculadora CLT</h3>
+
+              <p>
+                Aplicativo desenvolvido para facilitar cálculos relacionados à remuneração de
+                trabalhadores sob o regime CLT, reunindo diferentes cálculos trabalhistas em uma
+                ferramenta simples e acessível.
+              </p>
+
+              <div class="project-tags">
+                <span>Mobile</span>
+
+                <span>Flutter</span>
+
+                <span>CLT</span>
+
+                <span>Calculadora</span>
+              </div>
+
+              <a
+                href="https://play.google.com/store/apps/details?id=br.com.codeexpertssistemas.calculadora_clt"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="project-link"
+              >
+                Baixar na Google Play
+                <span>↗</span>
+              </a>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -237,9 +307,15 @@
 
           <div class="experience-numbers">
             <div class="experience-number">
-              <strong> 03 </strong>
+              <strong> 04 </strong>
 
               <span> projetos apresentados </span>
+            </div>
+
+            <div class="experience-number">
+              <strong>02</strong>
+
+              <span>aplicativos desenvolvidos</span>
             </div>
 
             <div class="experience-number">
@@ -959,6 +1035,106 @@
 
 .cta-button span {
   font-size: 18px;
+}
+
+.project-card__visual--clt {
+  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.12), transparent 65%);
+}
+
+.clt-preview {
+  width: 280px;
+
+  overflow: hidden;
+
+  border: 6px solid #111827;
+  border-radius: 28px;
+
+  background: white;
+
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+}
+
+.clt-preview__header {
+  padding: 18px 20px;
+
+  background: #111827;
+
+  color: white;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.clt-preview__content {
+  padding: 24px 20px;
+}
+
+.clt-preview__content small {
+  color: #6b7280;
+
+  font-size: 10px;
+}
+
+.clt-preview__content > strong {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #111827;
+
+  font-size: 25px;
+  line-height: 1.1;
+}
+
+.clt-preview__rows {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+
+  margin-top: 25px;
+}
+
+.clt-preview__rows div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding-bottom: 10px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.clt-preview__rows span {
+  color: #6b7280;
+
+  font-size: 10px;
+}
+
+.clt-preview__rows strong {
+  color: #111827;
+
+  font-size: 11px;
+}
+
+.clt-preview__rows div:last-child {
+  padding-top: 4px;
+  padding-bottom: 0;
+
+  border-bottom: none;
+}
+
+.clt-preview__rows div:last-child span {
+  color: #111827;
+
+  font-weight: 700;
+}
+
+.clt-preview__rows div:last-child strong {
+  color: var(--color-primary);
+
+  font-size: 13px;
 }
 
 /* ========================================
