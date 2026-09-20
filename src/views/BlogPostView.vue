@@ -324,16 +324,21 @@ onMounted(() => {
 |--------------------------------------------------------------------------
 */
 
-uuseHead(() => {
+useHead(() => {
+  /*
+   * Artigo não encontrado
+   */
+
   if (loading.value) {
     return {
-      title: 'Carregando artigo... | Code Experts Sistemas',
+      title: 'Carregando artigo | Code Experts Sistemas',
     }
   }
 
   if (!post.value) {
     return {
       title: 'Artigo não encontrado | Code Experts Sistemas',
+
       meta: [
         {
           name: 'robots',
@@ -342,47 +347,6 @@ uuseHead(() => {
       ],
     }
   }
-
-  const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
-
-  return {
-    title: `${post.value.title} | Code Experts Sistemas`,
-
-    meta: [
-      {
-        name: 'description',
-        content: post.value.excerpt,
-      },
-      {
-        property: 'og:title',
-        content: post.value.title,
-      },
-      {
-        property: 'og:description',
-        content: post.value.excerpt,
-      },
-      {
-        property: 'og:type',
-        content: 'article',
-      },
-      {
-        property: 'og:url',
-        content: url,
-      },
-      {
-        property: 'og:site_name',
-        content: 'Code Experts Sistemas',
-      },
-    ],
-
-    link: [
-      {
-        rel: 'canonical',
-        href: url,
-      },
-    ],
-  }
-})
 
   const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
 
