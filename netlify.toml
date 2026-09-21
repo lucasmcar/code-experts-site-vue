@@ -2,10 +2,16 @@
   from = "/sitemap.xml"
   to = "/.netlify/functions/sitemap"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/ads.txt"
   to = "/ads.txt"
+  status = 200
+
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
   status = 200
 
 [[redirects]]

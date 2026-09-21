@@ -1,7 +1,2 @@
-# 1. Permite o acesso direto a arquivos estáticos importantes (Evita loops)
-/ads.txt    /ads.txt    200
-/robots.txt /robots.txt 200
-/sitemap.xml /sitemap.xml 200
-
 # 2. Regra de Proxy para interceptar Bots/Crawlers e mandar para o Prerender.io
 /*  https://prerender.io  200!  X-Prerender-Token=WS2g1zJolakx83Sto21J
