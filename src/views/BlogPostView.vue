@@ -136,24 +136,20 @@ async function loadPost() {
       .from('posts')
       .select(
         `
-        id,
-        title,
-        slug,
-        excerpt,
-        content,
-        featured_image,
-        status,
-        published_at,
-        created_at,
-        categories (
-          id,
-          name
-        ),
-        profile (
-          id,
-          name
-        )
-      `,
+    id,
+    title,
+    slug,
+    excerpt,
+    content,
+    featured_image,
+    status,
+    published_at,
+    created_at,
+    categories (
+      id,
+      name
+    )
+  `,
       )
       .eq('slug', route.params.slug)
       .eq('status', 'published')
