@@ -93,8 +93,13 @@
 
       <h1>Artigo não encontrado.</h1>
 
-      <!-- TEMPORÁRIO: só pra depurar o Prerender.io -->
-      <p v-if="loadError" style="color: red; font-family: monospace">DEBUG: {{ loadError }}</p>
+      <!-- TEMPORÁRIO: debug -->
+      <pre style="text-align: left; color: red; font-size: 12px; white-space: pre-wrap">
+        DEBUG
+        slug (route.params.slug): "{{ route.params.slug }}"
+        notFound: {{ notFound }}
+        loadError: {{ loadError }}
+    </pre>
 
       <RouterLink to="/blog" class="cta-button"> Voltar para o blog </RouterLink>
     </div>
