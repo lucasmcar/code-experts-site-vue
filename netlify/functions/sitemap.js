@@ -27,6 +27,11 @@ export default async function handler() {
       priority: '0.8',
     },
     {
+      loc: 'https://codeexpertssistemas.com.br/projetos',
+      changefreq: 'monthly',
+      priority: '0.8',
+    },
+    {
       loc: 'https://codeexpertssistemas.com.br/blog',
       changefreq: 'monthly',
       priority: '0.8',
