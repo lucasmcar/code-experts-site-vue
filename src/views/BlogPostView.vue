@@ -89,31 +89,22 @@
   <!-- ARTIGO NÃO ENCONTRADO -->
   <main v-else class="not-found">
     <div class="container">
-      <span class="eyebrow"> Blog </span>
-
+      <span class="eyebrow">Blog</span>
       <h1>Artigo não encontrado.</h1>
-
-      <!-- TEMPORÁRIO: debug -->
-      <pre style="text-align: left; color: red; font-size: 12px; white-space: pre-wrap">
-        DEBUG
-        slug (route.params.slug): "{{ route.params.slug }}"
-        notFound: {{ notFound }}
-        loadError: {{ loadError }}
-    </pre>
-
-      <RouterLink to="/blog" class="cta-button"> Voltar para o blog </RouterLink>
+      <RouterLink to="/blog" class="cta-button">Voltar para o blog</RouterLink>
     </div>
   </main>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@unhead/vue'
 
 import { supabase } from '@/services/supabase'
 
 const route = useRoute()
+const router = useRouter()
 
 /*
 |--------------------------------------------------------------------------
@@ -122,10 +113,12 @@ const route = useRoute()
 */
 
 const post = ref(null)
-
 const loading = ref(true)
 
-const error = ref(null)
+// notFound: confirmado que o artigo não existe (deve levar noindex)
+// loadError: falha temporária ao buscar (NÃO deve levar noindex)
+const notFound = ref(false)
+const loadError = ref(null)
 
 /*
 |--------------------------------------------------------------------------
@@ -135,131 +128,80 @@ const error = ref(null)
 
 async function loadPost() {
   loading.value = true
-  error.value = null
-
-  const { data, error: supabaseError } = await supabase
-    .from('posts')
-    .select(
-      `
-      id,
-      title,
-      slug,
-      excerpt,
-      content,
-      featured_image,
-      status,
-      published_at,
-      created_at,
-      categories (
-        id,
-        name
-      ),
-      profile (
-        id,
-        name
-      )
-    `,
-    )
-    .eq('slug', route.params.slug)
-    .eq('status', 'published')
-    .single()
-
-  console.log('POST:', data)
-  console.log('ERRO:', supabaseError)
-
-  /*
-   * Caso o Supabase retorne erro
-   */
-  if (supabaseError) {
-    console.error('Erro ao carregar artigo:', supabaseError)
-
-    error.value = supabaseError.message
-
-    post.value = null
-
-    loading.value = false
-
-    return
-  }
-
-  /*
-   * Caso nenhum post seja encontrado
-   */
-  if (!data) {
-    post.value = null
-
-    loading.value = false
-
-    return
-  }
-
-  /*
-   * Interpretar o conteúdo
-   *
-   * O CMS salva o conteúdo como JSON.
-   *
-   * Exemplo:
-   *
-   * [
-   *   {
-   *     type: 'paragraph',
-   *     content: 'Texto do artigo'
-   *   },
-   *   {
-   *     type: 'heading',
-   *     content: 'Título'
-   *   }
-   * ]
-   */
-
-  let content = []
+  notFound.value = false
+  loadError.value = null
 
   try {
-    if (typeof data.content === 'string') {
-      content = JSON.parse(data.content)
-    } else if (Array.isArray(data.content)) {
-      content = data.content
+    const { data, error: supabaseError } = await supabase
+      .from('posts')
+      .select(
+        `
+        id,
+        title,
+        slug,
+        excerpt,
+        content,
+        featured_image,
+        status,
+        published_at,
+        created_at,
+        categories (
+          id,
+          name
+        ),
+        profile (
+          id,
+          name
+        )
+      `,
+      )
+      .eq('slug', route.params.slug)
+      .eq('status', 'published')
+      .single()
+
+    if (supabaseError) {
+      console.error('Erro ao carregar artigo:', supabaseError)
+      loadError.value = supabaseError.message
+      post.value = null
+      return
     }
-  } catch (parseError) {
-    console.error('Erro ao interpretar conteúdo do artigo:', parseError)
 
-    content = []
+    if (!data) {
+      notFound.value = true
+      post.value = null
+      return
+    }
+
+    let content = []
+
+    try {
+      if (typeof data.content === 'string') {
+        content = JSON.parse(data.content)
+      } else if (Array.isArray(data.content)) {
+        content = data.content
+      }
+    } catch (parseError) {
+      console.error('Erro ao interpretar conteúdo do artigo:', parseError)
+      content = []
+    }
+
+    post.value = {
+      ...data,
+      category: data.categories?.name || 'Tecnologia',
+      author: data.profile?.name || 'Code Experts Sistemas',
+      date: formatDate(data.published_at || data.created_at),
+      readingTime: calculateReadingTime(content),
+      content,
+    }
+  } catch (unexpectedError) {
+    // Captura QUALQUER exceção inesperada (rede caiu, etc.)
+    // — nunca deixa a função quebrar sem marcar loading como resolvido.
+    console.error('Erro inesperado ao carregar artigo:', unexpectedError)
+    loadError.value = unexpectedError?.message || String(unexpectedError)
+    post.value = null
+  } finally {
+    loading.value = false
   }
-
-  /*
-   * Monta o objeto utilizado pelo template
-   */
-
-  post.value = {
-    ...data,
-
-    /*
-     * Categoria
-     */
-    category: data.categories?.name || 'Tecnologia',
-
-    /*
-     * Autor
-     */
-    author: data.profile?.name || 'Code Experts Sistemas',
-
-    /*
-     * Data de publicação
-     */
-    date: formatDate(data.published_at || data.created_at),
-
-    /*
-     * Tempo estimado de leitura
-     */
-    readingTime: calculateReadingTime(content),
-
-    /*
-     * Conteúdo convertido
-     */
-    content,
-  }
-
-  loading.value = false
 }
 
 /*
@@ -269,10 +211,7 @@ async function loadPost() {
 */
 
 function formatDate(date) {
-  if (!date) {
-    return ''
-  }
-
+  if (!date) return ''
   return new Date(date).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
@@ -287,32 +226,9 @@ function formatDate(date) {
 */
 
 function calculateReadingTime(content) {
-  /*
-   * Junta o texto dos blocos.
-   *
-   * Aceita tanto:
-   *
-   * block.content
-   *
-   * quanto:
-   *
-   * block.text
-   *
-   * Isso mantém compatibilidade
-   * com os posts antigos.
-   */
-
   const text = content.map((block) => block.content || block.text || '').join(' ')
-
   const words = text.trim().split(/\s+/).filter(Boolean).length
-
-  /*
-   * Média aproximada:
-   * 200 palavras por minuto.
-   */
-
   const minutes = Math.max(1, Math.ceil(words / 200))
-
   return `${minutes} min de leitura`
 }
 
@@ -323,11 +239,23 @@ function calculateReadingTime(content) {
 */
 
 onMounted(async () => {
-  await loadPost()
-  await nextTick()
+  try {
+    await router.isReady()
 
-  if (typeof window !== 'undefined') {
-    window.prerenderReady = true
+    if (typeof window !== 'undefined') {
+      window.prerenderReady = false
+    }
+
+    await loadPost()
+    await nextTick()
+  } catch (e) {
+    console.error('Erro no ciclo de carregamento da página:', e)
+  } finally {
+    // Garante que o sinal é enviado mesmo se algo der errado acima —
+    // senão o Prerender.io fica preso até o timeout de novo.
+    if (typeof window !== 'undefined') {
+      window.prerenderReady = true
+    }
   }
 })
 
@@ -338,102 +266,37 @@ onMounted(async () => {
 */
 
 useHead(() => {
-  /*
-   * Artigo não encontrado
-   */
-
   if (loading.value) {
+    return { title: 'Carregando artigo | Code Experts Sistemas' }
+  }
+
+  if (notFound.value) {
     return {
-      title: 'Carregando artigo | Code Experts Sistemas',
+      title: 'Artigo não encontrado | Code Experts Sistemas',
+      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
     }
   }
 
-  if (!post.value) {
-    return {
-      title: 'Artigo não encontrado | Code Experts Sistemas',
-
-      meta: [
-        {
-          name: 'robots',
-          content: 'noindex, nofollow',
-        },
-      ],
-    }
+  if (loadError.value || !post.value) {
+    // Erro temporário: não indexa nem bloqueia explicitamente
+    return { title: 'Code Experts Sistemas' }
   }
 
   const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
 
   return {
-    /*
-     * TITLE
-     */
-
     title: `${post.value.title} | Code Experts Sistemas`,
-
-    /*
-     * META
-     */
-
     meta: [
-      {
-        name: 'description',
-        content: post.value.excerpt,
-      },
-
-      /*
-       * Open Graph
-       */
-
-      {
-        property: 'og:title',
-        content: post.value.title,
-      },
-
-      {
-        property: 'og:description',
-        content: post.value.excerpt,
-      },
-
-      {
-        property: 'og:type',
-        content: 'article',
-      },
-
-      {
-        property: 'og:url',
-        content: url,
-      },
-
-      {
-        property: 'og:site_name',
-        content: 'Code Experts Sistemas',
-      },
-
-      /*
-       * Informações do artigo
-       */
-
-      {
-        property: 'article:author',
-        content: post.value.author,
-      },
-
-      {
-        property: 'article:section',
-        content: post.value.category,
-      },
+      { name: 'description', content: post.value.excerpt },
+      { property: 'og:title', content: post.value.title },
+      { property: 'og:description', content: post.value.excerpt },
+      { property: 'og:type', content: 'article' },
+      { property: 'og:url', content: url },
+      { property: 'og:site_name', content: 'Code Experts Sistemas' },
+      { property: 'article:author', content: post.value.author },
+      { property: 'article:section', content: post.value.category },
     ],
-
-    /*
-     * URL CANÔNICA
-     */
-
-    link: [
-      {
-        rel: 'canonical',
-        href: url,
-      },
-    ],
+    link: [{ rel: 'canonical', href: url }],
   }
 })
 </script>
