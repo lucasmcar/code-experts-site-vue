@@ -93,6 +93,9 @@
 
       <h1>Artigo não encontrado.</h1>
 
+      <!-- TEMPORÁRIO: só pra depurar o Prerender.io -->
+      <p v-if="loadError" style="color: red; font-family: monospace">DEBUG: {{ loadError }}</p>
+
       <RouterLink to="/blog" class="cta-button"> Voltar para o blog </RouterLink>
     </div>
   </main>
