@@ -314,8 +314,17 @@ function calculateReadingTime(content) {
 |--------------------------------------------------------------------------
 */
 
-onMounted(() => {
-  loadPost()
+onMounted(async () => {
+  if (typeof window !== 'undefined') {
+    window.prerenderReady = false
+  }
+
+  await loadPost()
+  await nextTick() // garante que o DOM/título/meta já refletem o post carregado
+
+  if (typeof window !== 'undefined') {
+    window.prerenderReady = true
+  }
 })
 
 /*
