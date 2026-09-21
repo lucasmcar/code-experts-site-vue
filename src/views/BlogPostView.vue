@@ -86,18 +86,33 @@
     </section>
   </main>
 
-  <!-- ARTIGO NÃO ENCONTRADO -->
-  <main v-else class="not-found">
+  <!-- ERRO AO CARREGAR -->
+  <main v-else-if="loadError" class="not-found">
     <div class="container">
       <span class="eyebrow">Blog</span>
+
+      <h1>Não foi possível carregar o artigo.</h1>
+
+      <p>Ocorreu um erro ao carregar este conteúdo. Tente novamente mais tarde.</p>
+
+      <RouterLink to="/blog" class="cta-button"> Voltar para o blog </RouterLink>
+    </div>
+  </main>
+
+  <!-- ARTIGO NÃO ENCONTRADO -->
+  <main v-else-if="notFound" class="not-found">
+    <div class="container">
+      <span class="eyebrow">Blog</span>
+
       <h1>Artigo não encontrado.</h1>
-      <RouterLink to="/blog" class="cta-button">Voltar para o blog</RouterLink>
+
+      <RouterLink to="/blog" class="cta-button"> Voltar para o blog </RouterLink>
     </div>
   </main>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@unhead/vue'
 
@@ -115,8 +130,6 @@ const router = useRouter()
 const post = ref(null)
 const loading = ref(true)
 
-// notFound: confirmado que o artigo não existe (deve levar noindex)
-// loadError: falha temporária ao buscar (NÃO deve levar noindex)
 const notFound = ref(false)
 const loadError = ref(null)
 
@@ -132,39 +145,48 @@ async function loadPost() {
   loadError.value = null
 
   try {
+    const slug = route.params.slug
+
+    console.log('Carregando artigo com slug:', slug)
+
     const { data, error: supabaseError } = await supabase
       .from('posts')
       .select(
         `
-    id,
-    title,
-    slug,
-    excerpt,
-    content,
-    featured_image,
-    status,
-    published_at,
-    created_at,
-    categories (
-      id,
-      name
-    )
-  `,
+        id,
+        title,
+        slug,
+        excerpt,
+        content,
+        featured_image,
+        status,
+        published_at,
+        created_at,
+        categories (
+          id,
+          name
+        )
+      `,
       )
-      .eq('slug', route.params.slug)
+      .eq('slug', slug)
       .eq('status', 'published')
       .single()
 
     if (supabaseError) {
       console.error('Erro ao carregar artigo:', supabaseError)
+
       loadError.value = supabaseError.message
       post.value = null
+
       return
     }
 
     if (!data) {
+      console.warn('Artigo não encontrado para o slug:', slug)
+
       notFound.value = true
       post.value = null
+
       return
     }
 
@@ -178,22 +200,28 @@ async function loadPost() {
       }
     } catch (parseError) {
       console.error('Erro ao interpretar conteúdo do artigo:', parseError)
+
       content = []
     }
 
     post.value = {
       ...data,
+
       category: data.categories?.name || 'Tecnologia',
-      author: data.profile?.name || 'Code Experts Sistemas',
+
+      author: 'Code Experts Sistemas',
+
       date: formatDate(data.published_at || data.created_at),
+
       readingTime: calculateReadingTime(content),
+
       content,
     }
   } catch (unexpectedError) {
-    // Captura QUALQUER exceção inesperada (rede caiu, etc.)
-    // — nunca deixa a função quebrar sem marcar loading como resolvido.
     console.error('Erro inesperado ao carregar artigo:', unexpectedError)
+
     loadError.value = unexpectedError?.message || String(unexpectedError)
+
     post.value = null
   } finally {
     loading.value = false
@@ -208,6 +236,7 @@ async function loadPost() {
 
 function formatDate(date) {
   if (!date) return ''
+
   return new Date(date).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
@@ -223,8 +252,11 @@ function formatDate(date) {
 
 function calculateReadingTime(content) {
   const text = content.map((block) => block.content || block.text || '').join(' ')
+
   const words = text.trim().split(/\s+/).filter(Boolean).length
+
   const minutes = Math.max(1, Math.ceil(words / 200))
+
   return `${minutes} min de leitura`
 }
 
@@ -243,12 +275,17 @@ onMounted(async () => {
     }
 
     await loadPost()
+
     await nextTick()
   } catch (e) {
     console.error('Erro no ciclo de carregamento da página:', e)
   } finally {
-    // Garante que o sinal é enviado mesmo se algo der errado acima —
-    // senão o Prerender.io fica preso até o timeout de novo.
+    /*
+    |--------------------------------------------------------------------------
+    | PRERENDER
+    |--------------------------------------------------------------------------
+    */
+
     if (typeof window !== 'undefined') {
       window.prerenderReady = true
     }
@@ -263,36 +300,83 @@ onMounted(async () => {
 
 useHead(() => {
   if (loading.value) {
-    return { title: 'Carregando artigo | Code Experts Sistemas' }
+    return {
+      title: 'Carregando artigo | Code Experts Sistemas',
+    }
   }
 
   if (notFound.value) {
     return {
       title: 'Artigo não encontrado | Code Experts Sistemas',
-      meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+
+      meta: [
+        {
+          name: 'robots',
+          content: 'noindex, nofollow',
+        },
+      ],
     }
   }
 
   if (loadError.value || !post.value) {
-    // Erro temporário: não indexa nem bloqueia explicitamente
-    return { title: 'Code Experts Sistemas' }
+    return {
+      title: 'Code Experts Sistemas',
+    }
   }
 
   const url = `https://codeexpertssistemas.com.br/blog/${post.value.slug}`
 
   return {
     title: `${post.value.title} | Code Experts Sistemas`,
+
     meta: [
-      { name: 'description', content: post.value.excerpt },
-      { property: 'og:title', content: post.value.title },
-      { property: 'og:description', content: post.value.excerpt },
-      { property: 'og:type', content: 'article' },
-      { property: 'og:url', content: url },
-      { property: 'og:site_name', content: 'Code Experts Sistemas' },
-      { property: 'article:author', content: post.value.author },
-      { property: 'article:section', content: post.value.category },
+      {
+        name: 'description',
+        content: post.value.excerpt,
+      },
+
+      {
+        property: 'og:title',
+        content: post.value.title,
+      },
+
+      {
+        property: 'og:description',
+        content: post.value.excerpt,
+      },
+
+      {
+        property: 'og:type',
+        content: 'article',
+      },
+
+      {
+        property: 'og:url',
+        content: url,
+      },
+
+      {
+        property: 'og:site_name',
+        content: 'Code Experts Sistemas',
+      },
+
+      {
+        property: 'article:author',
+        content: post.value.author,
+      },
+
+      {
+        property: 'article:section',
+        content: post.value.category,
+      },
     ],
-    link: [{ rel: 'canonical', href: url }],
+
+    link: [
+      {
+        rel: 'canonical',
+        href: url,
+      },
+    ],
   }
 })
 </script>
@@ -501,6 +585,16 @@ useHead(() => {
   margin-top: 15px;
 
   font-size: 45px;
+}
+
+.not-found p {
+  max-width: 600px;
+
+  margin: 20px auto 0;
+
+  color: var(--color-text-secondary);
+
+  line-height: 1.7;
 }
 
 /* =========================================================
