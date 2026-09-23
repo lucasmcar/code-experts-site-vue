@@ -31,9 +31,9 @@ export default defineNuxtConfig({
       siteUrl: 'https://codeexpertssistemas.com.br',
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
       supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY,
-      recaptchaSiteKey: '',
-      metaPixelId: '',
-      firebaseVapidKey: '',
+      recaptchaSiteKey: process.env.NUXT_PUBLIC_RECAPTCHA_SITE_KEY,
+      metaPixelId: process.env.NUXT_PUBLIC_META_PIXEL_ID,
+      firebaseVapidKey: process.env.NUXT_PUBLIC_FIREBASE_VAPID_KEY,
     },
   },
 
