@@ -44,3 +44,4 @@ __screenshots__/
 !.env.example
 # Local Netlify folder
 .netlify
+.nuxt
