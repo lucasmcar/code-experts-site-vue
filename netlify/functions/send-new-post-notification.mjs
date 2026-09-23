@@ -91,7 +91,6 @@ export default async (request) => {
 
     //const url = `/blog/${slug}`
     const path = `/blog/${slug}`
-    const absoluteUrl = `${SITE_URL}${path}`
 
     let sent = 0
     let failed = 0
