@@ -175,7 +175,7 @@ const notificationLoading = ref(false)
 
 const NOTIFICATION_DISMISSED_KEY = 'code_experts_notification_prompt_dismissed'
 
-/*async function ativarNotificacoes() {
+async function ativarNotificacoes() {
   if (notificationLoading.value) {
     return
   }
@@ -220,7 +220,7 @@ const NOTIFICATION_DISMISSED_KEY = 'code_experts_notification_prompt_dismissed'
   } finally {
     notificationLoading.value = false
   }
-}*/
+}
 
 function dismissNotificationPrompt() {
   sessionStorage.setItem(NOTIFICATION_DISMISSED_KEY, 'true')
