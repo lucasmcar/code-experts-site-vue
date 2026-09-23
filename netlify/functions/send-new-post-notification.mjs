@@ -89,7 +89,9 @@ export default async (request) => {
 
     const tokens = subscriptions.map((subscription) => subscription.token)
 
-    const url = `/blog/${slug}`
+    //const url = `/blog/${slug}`
+    const path = `/blog/${slug}`
+    const absoluteUrl = `${SITE_URL}${path}`
 
     let sent = 0
     let failed = 0
@@ -108,19 +110,18 @@ export default async (request) => {
       const response = await messaging.sendEachForMulticast({
         tokens: chunk,
 
-        notification: {
+        // Data-only: todos os valores precisam ser string.
+        data: {
           title: 'Novo artigo no blog',
           body: excerpt || title,
-        },
-
-        data: {
-          url,
+          url: path,
           slug,
         },
 
         webpush: {
-          fcmOptions: {
-            link: url,
+          headers: {
+            Urgency: 'high',
+            TTL: '86400',
           },
         },
       })
