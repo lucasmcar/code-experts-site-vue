@@ -97,23 +97,66 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
 
 const supabase = useSupabaseClient()
-import { posts } from '../../data/posts'
 
-const router = useRouter()
+const posts = ref([])
+const loading = ref(true)
+const error = ref(null)
 
-const publishedPosts = computed(() => posts.filter((post) => post.status === 'published').length)
+const publishedPosts = computed(
+  () => posts.value.filter((post) => post.status === 'published').length,
+)
 
-const draftPosts = computed(() => posts.filter((post) => post.status === 'draft').length)
+const draftPosts = computed(() => posts.value.filter((post) => post.status === 'draft').length)
+
+const loadPosts = async () => {
+  loading.value = true
+  error.value = null
+
+  const { data, error: supabaseError } = await supabase
+    .from('posts')
+    .select(
+      `
+      id,
+      title,
+      slug,
+      status,
+      published_at,
+      categories (
+        id,
+        name
+      )
+    `,
+    )
+    .order('created_at', { ascending: false })
+
+  if (supabaseError) {
+    console.error('Erro ao carregar posts:', supabaseError)
+
+    error.value = supabaseError.message
+    posts.value = []
+
+    loading.value = false
+
+    return
+  }
+
+  posts.value = data || []
+
+  loading.value = false
+}
 
 const logout = async () => {
   await supabase.auth.signOut()
 
-  router.push('/admin/login')
+  await navigateTo('/admin/login')
 }
+
+onMounted(() => {
+  loadPosts()
+})
 </script>
 
 <style scoped>
