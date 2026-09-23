@@ -114,7 +114,7 @@
 <script setup>
 import { nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useHead } from '@unhead/vue'
+//import { useHead } from '@unhead/vue'
 
 const supabase = useSupabaseClient()
 
