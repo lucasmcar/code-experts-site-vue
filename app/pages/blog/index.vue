@@ -162,7 +162,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 //import { useHead } from '@unhead/vue'
-//import { requestNotificationPermission } from '../../services/firebase'
+import { requestNotificationPermission } from '../../services/firebase'
 
 const supabase = useSupabaseClient()
 
