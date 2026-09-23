@@ -15,8 +15,9 @@
     "format": "prettier --write --experimental-cli app/"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.4",
     "@nuxtjs/supabase": "^1.6.1",
+    "@supabase/supabase-js": "^2.112.4",
+    "firebase": "^12.19.0",
     "firebase-admin": "^14.4.0",
     "nuxt": "^4.1.0"
   },
