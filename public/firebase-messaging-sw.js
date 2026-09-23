@@ -1,5 +1,4 @@
 importScripts('https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js')
-
 importScripts('https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging-compat.js')
 
 firebase.initializeApp({
@@ -22,7 +21,7 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification?.body || 'Tem novidade no blog da Code Experts.',
     icon: '/favicon.png',
     data: {
-      url: payload.fcmOptions?.link || '/blog',
+      url: payload.data?.url || '/blog',
     },
   }
 
