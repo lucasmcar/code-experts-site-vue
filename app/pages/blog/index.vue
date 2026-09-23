@@ -162,7 +162,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 //import { useHead } from '@unhead/vue'
-import { requestNotificationPermission } from '../../services/firebase'
+//import { requestNotificationPermission } from '../../services/firebase'
 
 const supabase = useSupabaseClient()
 
@@ -183,6 +183,8 @@ async function ativarNotificacoes() {
   notificationLoading.value = true
 
   try {
+    const { requestNotificationPermission } = await import('../../services/firebase')
+
     const token = await requestNotificationPermission()
 
     const { error: supabaseError } = await supabase.from('push_subscriptions').insert({
@@ -193,8 +195,6 @@ async function ativarNotificacoes() {
     })
 
     if (supabaseError) {
-      // Token já cadastrado.
-      // Nesse caso, consideramos a inscrição válida.
       if (supabaseError.code === '23505') {
         console.log('TOKEN FCM já estava cadastrado:', token)
       } else {
@@ -206,10 +206,8 @@ async function ativarNotificacoes() {
       }
     }
 
-    // Só escondemos o aviso depois que tudo deu certo.
     showNotificationPrompt.value = false
 
-    // Remove o estado "Agora não", caso exista.
     sessionStorage.removeItem(NOTIFICATION_DISMISSED_KEY)
 
     alert('Notificações ativadas com sucesso!')
